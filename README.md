@@ -69,3 +69,5 @@ The linked Sites cloud schedule calls the owner-authorized `run_scheduled_check`
 New analyses require 1–3 summary bullets, each at most 200 characters, with Important, Monitor or Good to know priority. Colour labels use red, orange and yellow respectively, with readable dark text. Existing priority labels are mapped for older saved results.
 
 Fallback order: publisher section listing, then advertised news sitemap or standard sitemap. Each fallback source retrieves metadata for up to four discovered articles in parallel. Descriptions and explicit timezone dates come from public metadata or Article JSON-LD; missing fields stay unknown and headline-only evidence is labelled. No full article body or paywalled content is collected. Robots rules and blocked sources remain enforced.
+
+Shortlist cards use one primary report each to keep summaries focused on a single development. Selection avoids duplicate events; other collected reports remain in the evidence inbox. AI output uses a strict schema for bullet counts, length and priority, with one bounded correction attempt for validation failures. Open dashboards refresh saved state every minute.
