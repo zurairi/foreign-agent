@@ -21,7 +21,7 @@ export async function POST(request:Request){
   let result:unknown;
   const args=rpc.params?.arguments||{};
   if(rpc.params?.name==='run_scheduled_check'){if(Object.keys(args).length)throw new Error('No arguments expected');result=await scheduledCheck();}
-  else if(rpc.params?.name==='get_monitoring_status'){const state=await getState();result={run_id:state.latest_run?.run_id,item_count:state.latest_run?.items.length,ended_at:state.latest_run?.ended_at,st_status:state.latest_run?.st_coverage?.status,excluded:state.latest_run?.st_coverage?.matches.length,analysis_error:state.latest_run?.analysis_error||null,cards:state.analysis?.cards.length,schedule:state.schedule_status};}
+  else if(rpc.params?.name==='get_monitoring_status'){const state=await getState();result={run_id:state.latest_run?.run_id,item_count:state.latest_run?.items.length,ended_at:state.latest_run?.ended_at,st_status:state.latest_run?.st_coverage?.status,excluded:state.latest_run?.st_coverage?.matches.length,analysis_error:state.latest_run?.analysis_error||null,analysis_run_id:state.analysis?.run_id,saved_for_latest_run:state.analysis?.run_id===state.latest_run?.run_id,cards:state.analysis?.run_id===state.latest_run?.run_id?state.analysis.cards.length:0,schedule:state.schedule_status};}
   else if(rpc.params?.name==='set_schedule_status'){if(typeof args.enabled!=='boolean'||Object.keys(args).length!==1)throw new Error('Expected enabled boolean');result=await setScheduleStatus(args.enabled);}
   else throw new Error('Unknown tool');
   return reply({content:[{type:'text',text:JSON.stringify(result)}]});

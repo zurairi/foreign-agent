@@ -16,3 +16,7 @@ export function validateAnalysis(value:unknown,run:{run_id:string;input_hash:str
  if(!Array.isArray(c.verification_flags)||c.verification_flags.length>15||c.verification_flags.some(f=>typeof f!=='string'||!f.trim()||f.length>1000))throw new UserError('Invalid verification flags');}
  return (v.cards as Card[]).sort((a,b)=>bands.indexOf(a.priority_band)-bands.indexOf(b.priority_band));
 }
+
+export function analysisFormat(itemIds:string[]){
+ return {type:'json_schema',name:'editorial_shortlist',strict:true,schema:{type:'object',properties:{run_id:{type:'string'},input_hash:{type:'string'},cards:{type:'array',maxItems:5,items:{type:'object',properties:{source_item_ids:{type:'array',minItems:1,items:{type:'string',enum:itemIds}},headline:{type:'string',minLength:1,maxLength:180},summary:{type:'array',minItems:1,maxItems:3,items:{type:'string',minLength:1,maxLength:200}},why_it_matters:{type:'string',minLength:1,maxLength:250},priority_band:{type:'string',enum:['Important','Monitor','Good to know']},priority_reason:{type:'string',minLength:1},verification_flags:{type:'array',items:{type:'string'}}},required:['source_item_ids','headline','summary','why_it_matters','priority_band','priority_reason','verification_flags'],additionalProperties:false}}},required:['run_id','input_hash','cards'],additionalProperties:false}};
+}
