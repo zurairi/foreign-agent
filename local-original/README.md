@@ -1,0 +1,1 @@
+Prior local Python/React version, preserved as a code-only recovery copy. The current hosted implementation is at the repository root. No API key, source database, or collected data is included here. For local use, restore dependencies and run ./start.sh.

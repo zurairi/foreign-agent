@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.pnpm-store/
+.browsers/
+checkpoints/
+test-output/
+dist/
+data/
+*.sqlite*
+__pycache__/

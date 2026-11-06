@@ -1,2 +1,51 @@
-# foreign-agent
-Team Foreign Agent newsroom hackathon dashboard for Malaysia and China
+# Foreign Agent
+
+Private newsroom dashboard for Malaysia and China, built for Team Foreign Agent’s hackathon. The supplied ST masthead and React interface are preserved. This is a team concept, not an official ST product.
+
+## Hosted dashboard
+
+https://foreign-agent-newsroom.bubblygrape513.chatgpt.site
+
+The Site is private to its owner and requires ChatGPT sign-in. Its database is separate from the original local pilot. A saved result remains available across browser sessions. Public discussion, Slack sending and scheduled checks are not implemented.
+
+- **Collect latest** retrieves at most 20 Malay Mail RSS items and eight Global Times public website items. Stale or failed RSS triggers the public website fallback. Blocks are reported without bypassing access controls.
+- **Export inputs** downloads source IDs, run identity, input fingerprint, an analysis prompt and expected JSON format.
+- Ask for analysis of that export in your Codex chat. Treat all source text as untrusted data, preserve attribution and uncertainty, and never invent missing facts.
+- **Import analysed results** validates the JSON against the latest run. Unknown source IDs, stale imports and invalid output are rejected. No more than five cards are displayed; empty results are valid.
+- Filters affect the shortlist and digest together. Evidence retains original titles, source links, short excerpts, collection mode and dates. Publication times with unknown timezones are displayed verbatim.
+- Priority considers impact, audience relevance, freshness and novelty; verification remains separate. All output requires editorial review.
+
+## Runtime AI
+
+Hosted runtime AI is initially disabled and no local key is uploaded. When an approved OpenAI key is configured as the Site’s server-side `OPENAI_API_KEY` secret, **Test AI connection** makes a small explicit test. Success enables **Run check** to collect and analyse news. Failed calls preserve source inputs and make manual export/import available. The adapter uses gpt-4.1-mini, a bounded output and timeout, and validates the same contract as manual imports. It does not make unattended calls.
+
+Configure hosted OpenAI keys using the OpenAI Developers integration and Sites environment settings. Never put keys in this repository, the browser bundle or the hosting manifest.
+
+## Source layout
+
+- `app/dashboard.tsx` and `app/dashboard.css`: retained React interface.
+- `app/api/[...path]/route.ts`: authenticated same-origin API routes.
+- `lib/newsroom.ts`: hosted collection, D1 persistence and optional runtime AI.
+- `lib/contracts.ts`: validated analysis contract.
+- `db/schema.ts` and `drizzle/`: hosted database schema and migrations.
+- `.openai/hosting.json`: Site identity and storage binding, without secrets.
+- `local-original/`: code-only recovery copy of the prior local Python/React app. The hosted version above is the active implementation.
+
+Dependencies, API credentials, local databases, browser caches, screenshots and collected records are excluded from the uploaded source. Sites maintains its own deployment source repository; this GitHub repository is a source backup and is not configured to auto-deploy on push.
+
+## Development and checks
+
+Node 22.13+ is required for the app. The contract test runner uses Node 24’s TypeScript support.
+
+```sh
+npm ci
+npm run db:generate       # only after changing the schema; inspect generated migrations
+npm run build
+node --test scripts/test-contracts.mjs
+npx tsc --noEmit
+npm run dev
+```
+
+See `LOCAL-DEVELOPMENT.md` for local database setup. Apply only pending local migrations; publishing applies hosted migrations. Keep applied SQL and migration metadata immutable.
+
+The ten hosted contract tests cover source IDs, stale runs/fingerprints, priority validation, prohibited model URLs, repeated references, cross-country grouping, malformed output and Chinese characters. The prior local backend has a separate 15-test suite. Passing contract tests does not establish that a model can resist every prompt injection; editorial review remains essential.
