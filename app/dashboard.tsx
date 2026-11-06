@@ -32,7 +32,6 @@ export const ForeignDeskShortlistPrototype = () => {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
   async function refresh() { setState(await api<State>('state')); }
   useEffect(() => {
     let active=true;
@@ -64,17 +63,6 @@ export const ForeignDeskShortlistPrototype = () => {
     catch (e) { setError((e as Error).message); setNotice('Runtime AI remains disabled; collection and manual analysis are available.'); }
     finally { await refresh().catch(() => {}); setBusy(false); }
   }
-  async function exportInputs() {
-    try { const data = await api<{run_id:string}>('export'); const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = `foreign-agent-inputs-${data.run_id}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setNotice('Inputs exported with an analysis prompt and expected JSON format. No automatic AI call was made.'); }
-    catch (e) { setError((e as Error).message); }
-  }
-  async function importFile(file?: File) {
-    if (!file) return;
-    setBusy(true); setError('');
-    try { if (file.size > 1_000_000) throw new Error('Import exceeds 1 MB limit.'); const data = JSON.parse(await file.text()); await api('import', data); await refresh(); setNotice('Analysis validated and saved. It was manually imported; no runtime AI call occurred.'); }
-    catch (e) { setError((e as Error).message); }
-    finally { setBusy(false); if (fileInput.current) fileInput.current.value = ''; }
-  }
   const collectionLabel = state?.latest_run ? [...new Set(rawItems.map(i => i.collection_mode))].join(' + ') || 'Collection failed' : 'Not collected yet';
   const statusText = `${collectionLabel} · ${analysis ? analysis.analysis_mode : 'Analysis pending'} · ${state?.ai_enabled ? 'Runtime AI connected' : 'Runtime AI disabled'}. Nothing has been sent.`;
   return <div className="fa-app">
@@ -85,7 +73,6 @@ export const ForeignDeskShortlistPrototype = () => {
       {state?.stale && <div className="fa-banner fa-stale" role="status"><strong>STALE ANALYSIS</strong> · These cards belong to a previous collection. Export the latest inputs and import fresh analysis. Previous evidence remains attached to its original run.</div>}
       {state && !state.can_write && <div className="fa-notice">Public viewing · Collection and imports are restricted to the owner. <a href="/signin-with-chatgpt?return_to=%2F" target="_top">Owner sign-in</a></div>}
       <section className="fa-heading"><div><h1>{country === 'All coverage' ? 'Your editorial shortlist' : `${country} in focus`}</h1><p>What happened. Why it may matter. Where to check.</p></div><div className="fa-actions"><button onClick={() => dialog.current?.showModal()}>Preview digest</button><button className="fa-primary" disabled={busy || !state?.can_write} onClick={collect}>{busy ? 'Working…' : state?.ai_enabled ? 'Run check' : 'Collect latest'}</button></div></section>
-      <div className="fa-workflow"><button disabled={!rawItems.length || busy} onClick={exportInputs}>Export inputs</button><button disabled={!rawItems.length || busy || !state?.can_write} onClick={() => fileInput.current?.click()}>Import analysed results</button><input hidden ref={fileInput} type="file" accept=".json,application/json" aria-label="Import analysis JSON" onChange={e => importFile(e.target.files?.[0])}/><p>Run check collects news, checks ST coverage and creates a fresh shortlist. Export and import remain available for manual analysis.</p></div>
       <div className="fa-filters"><label>Input<select value={input} onChange={e => setInput(e.target.value)}><option>All inputs</option><option>News reports</option></select></label><label>Priority<select value={priority} onChange={e => setPriority(e.target.value)}><option>All priorities</option><option>Important</option><option>Monitor</option><option>Good to know</option></select></label><span>Latest collection: {state?.latest_run?.ended_at ? formatTime(state.latest_run.ended_at) : 'None yet'}</span></div>
       <div role="status" aria-live="polite">{notice && <div className="fa-notice">{notice}</div>}</div>{error && <div className="fa-banner fa-stale" role="alert">{error} <button onClick={() => { setError(''); refresh().catch(() => setError('Server unavailable. Reload the page or try again later.')); }}>Retry connection</button></div>}
       <div className="fa-content"><section aria-labelledby="review-heading"><div className="fa-list-heading"><h2 id="review-heading">For editorial review</h2><span>{stories.length} {stories.length === 1 ? 'lead' : 'leads'}</span></div>
