@@ -18,3 +18,5 @@
 .fa-app .fa-evidence p{font-size:12px;line-height:1.55}.fa-app .fa-evidence .fa-detail-meta,.fa-app .fa-evidence .fa-evidence-limitation,.fa-app .fa-evidence .fa-evidence-basis{font-size:11px}.fa-evidence .fa-source>strong{font-size:12px}
 
 .fa-app .fa-back-to-top{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:5;background:var(--navy);color:#fff;border-color:var(--navy);font-size:13px;padding:11px 16px;min-height:44px}.fa-app .fa-back-to-top:hover{background:#173e6d;border-color:#173e6d}.fa-page-footer{padding-bottom:84px}@media(max-width:600px){.fa-app .fa-back-to-top{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom))}}
+
+.fa-dialog li p.fa-digest-support{font-size:12px;line-height:1.5;color:var(--muted)}.fa-dialog .fa-digest-support .fa-dialog-meta{font-size:11px!important}
