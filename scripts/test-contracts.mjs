@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {validateAnalysis} from '../lib/contracts.ts';
 const run={run_id:'current',input_hash:'hash',items:[{item_id:'my',country:'Malaysia'},{item_id:'cn',country:'China'}]};
-const card={source_item_ids:['my'],headline:'中国发展 – original title',summary:'A source says something.',why_it_matters:'Relevance not established.',priority_band:'Watch',priority_reason:'Impact; relevance; freshness; novelty.',verification_flags:['Check primary source.']};
+const card={source_item_ids:['my'],headline:'中国发展 – original title',summary:['A source says something.'],why_it_matters:'Relevance not established.',priority_band:'Monitor',priority_reason:'Impact; relevance; freshness; novelty.',verification_flags:['Check primary source.']};
 const output=()=>({run_id:run.run_id,input_hash:run.input_hash,cards:[structuredClone(card)]});
 test('valid analysis preserves Chinese and source IDs',()=>assert.equal(validateAnalysis(output(),run)[0].headline,card.headline));
 test('missing source ID rejected',()=>{const v=output();v.cards[0].source_item_ids=['invented'];assert.throws(()=>validateAnalysis(v,run),/known source/);});
@@ -19,3 +19,6 @@ test('anonymous visitors cannot write',()=>assert.equal(ownerCanWrite(null,'owne
 test('another signed-in user cannot write',()=>assert.equal(ownerCanWrite('viewer@example.test','owner@example.test'),false));
 test('owner can write and comparison ignores email case',()=>assert.equal(ownerCanWrite('Owner@Example.Test','owner@example.test'),true));
 test('missing owner configuration fails closed',()=>assert.equal(ownerCanWrite('owner@example.test',undefined),false));
+
+test('summaries must have one to three short bullets',()=>{for(const summary of ['paragraph',[],['a','b','c','d'],['x'.repeat(201)]]){const v=output();v.cards[0].summary=summary;assert.throws(()=>validateAnalysis(v,run),/bullet/);}});
+test('new priorities accepted and old priorities rejected',()=>{for(const band of ['Important','Monitor','Good to know']){const v=output();v.cards[0].priority_band=band;assert.equal(validateAnalysis(v,run)[0].priority_band,band);}const v=output();v.cards[0].priority_band='Watch';assert.throws(()=>validateAnalysis(v,run),/priority/);});

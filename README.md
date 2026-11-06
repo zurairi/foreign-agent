@@ -61,3 +61,11 @@ Each feed contributes at most eight items; website-only fallback contributes up 
 Each Run check fetches up to 100 current ST Asia RSS entries and compares all collected candidates using a separate runtime AI request, including translated headlines. Strict ID validation rejects invented matches; matched candidate IDs cannot enter the shortlist, including via manual import. Raw source items remain available for evidence and excluded pairs can be inspected. If ST retrieval or comparison fails, the shortlist is withheld. This is a semantic screening aid limited to the current feed, not an exhaustive ST archive search; model matches can be imperfect. Run check now makes two bounded AI calls.
 
 Priority is a qualitative AI editorial assessment: impact, Singapore/regional relevance, freshness and novelty. Cards sort by Review now, Watch, Lower priority, preserving model order inside a band. No numeric score or popularity metric is used.
+
+## Automatic checks and concise summaries
+
+The linked Sites cloud schedule calls the owner-authorized `run_scheduled_check` MCP tool daily at 09:00, 12:00, 15:00 and 18:00 Asia/Singapore. The tool uses the same collector, ST exclusion, AI analysis and D1 storage as Run check. A shared lease prevents overlap; completed scheduled slots are idempotent. Manual checks remain independent. The Site can be closed during a scheduled run. Schedule activation is recorded separately and shown in the dashboard.
+
+New analyses require 1–3 summary bullets, each at most 200 characters, with Important, Monitor or Good to know priority. Colour labels use red, orange and yellow respectively, with readable dark text. Existing priority labels are mapped for older saved results.
+
+Fallback order: publisher section listing, then advertised news sitemap or standard sitemap. Each fallback source retrieves metadata for up to four discovered articles in parallel. Descriptions and explicit timezone dates come from public metadata or Article JSON-LD; missing fields stay unknown and headline-only evidence is labelled. No full article body or paywalled content is collected. Robots rules and blocked sources remain enforced.

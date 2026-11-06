@@ -3,14 +3,14 @@ import type { Item } from './newsroom';
 export type Source = {country:string;source_name:string;url:string;website:string;language:string;scrape?:boolean};
 export const SOURCES:Source[] = [
 {"country": "Malaysia", "source_name": "Malay Mail", "url": "https://www.malaymail.com/feed/rss/malaysia", "website": "https://www.malaymail.com/news/malaysia", "language": "en", "scrape": true},
-{"country": "Malaysia", "source_name": "Sinar Harian", "url": "https://www.sinarharian.com.my/rssFeed/211/50", "website": "https://www.sinarharian.com.my/", "language": "ms", "scrape": true},
+{"country": "Malaysia", "source_name": "Sinar Harian", "url": "https://www.sinarharian.com.my/rssFeed/211/50", "website": "https://www.sinarharian.com.my/nasional", "language": "ms", "scrape": true},
 {"country": "Malaysia", "source_name": "Utusan", "url": "https://www.utusan.com.my/nasional/feed/", "website": "https://www.utusan.com.my/nasional/", "language": "ms", "scrape": true},
 {"country": "Malaysia", "source_name": "Free Malaysia Today", "url": "https://www.freemalaysiatoday.com/feeds/rss/nation", "website": "https://www.freemalaysiatoday.com/", "language": "en", "scrape": true},
 {"country": "Malaysia", "source_name": "Malaysiakini", "url": "https://www.malaysiakini.com/rss/en/news.rss", "website": "https://www.malaysiakini.com/", "language": "en", "scrape": true},
-{"country": "Malaysia", "source_name": "Astro Awani", "url": "https://www.astroawani.com/rss/national/en/public", "website": "https://www.astroawani.com/", "language": "ms", "scrape": true},
+{"country": "Malaysia", "source_name": "Astro Awani", "url": "https://www.astroawani.com/rss/national/en/public", "website": "https://www.astroawani.com/berita-malaysia", "language": "ms", "scrape": true},
 {"country": "Malaysia", "source_name": "Bernama", "url": "https://www.bernama.com/en/rssfeed.php", "website": "https://www.bernama.com/", "language": "en", "scrape": true},
 {"country": "Malaysia", "source_name": "Google News", "url": "https://news.google.com/rss/headlines/section/geo/Malaysia?hl=en-MY&gl=MY&ceid=MY:en", "website": "https://news.google.com/headlines/section/geo/Malaysia?hl=en-MY&gl=MY&ceid=MY:en", "language": "en", "scrape": true},
-{"country": "China", "source_name": "China News Service", "url": "https://www.chinanews.com.cn/rss/china.xml", "website": "https://www.chinanews.com.cn/", "language": "zh", "scrape": true},
+{"country": "China", "source_name": "China News Service", "url": "https://www.chinanews.com.cn/rss/china.xml", "website": "https://www.chinanews.com.cn/china/", "language": "zh", "scrape": true},
 {"country": "China", "source_name": "Global Times", "url": "https://www.globaltimes.cn/rss/outbrain.xml", "website": "https://www.globaltimes.cn/", "language": "en", "scrape": true},
 {"country": "China", "source_name": "Baidu News", "url": "https://rsshub.app/baidu/top", "website": "https://news.baidu.com/", "language": "zh", "scrape": true},
 {"country": "China", "source_name": "Phoenix", "url": "https://news.ifeng.com/rss/index.xml", "website": "https://news.ifeng.com/", "language": "zh", "scrape": true},
