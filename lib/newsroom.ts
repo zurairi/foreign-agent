@@ -124,10 +124,14 @@ async function verifyStoryGroups(cards:Card[],items:Item[],run:Run):Promise<Card
  const accepted=verifiedCoverage(JSON.parse(text),pairs);
  const groups=cards.map(card=>card.source_item_ids.filter((id,index)=>index===0||accepted.some(match=>match.item_id===id&&match.st_id===card.source_item_ids[0])));
  if(groups.every((group,index)=>group.length===cards[index].source_item_ids.length))return cards;
- const rewritten=await responseText(PROMPT+'\nRewrite only these selected stories using the verified source groups. Membership and primary report order are LOCKED. Return one card per group, in the same order, with exactly its source_item_ids. Excluded reports must contribute NO claims, context or facts. Do not introduce new stories. Keep the headline and summary supported by the primary report and preserve uncertainty.',JSON.stringify({run_id:run.run_id,input_hash:run.input_hash,groups:groups.map(ids=>({source_item_ids:ids,reports:ids.map(id=>items.find(item=>item.item_id===id))}))}),6500,analysisFormat(items));
- const result=validateAnalysis(JSON.parse(rewritten),{...run,items});
- if(result.length!==groups.length||result.some((card,index)=>JSON.stringify(card.source_item_ids)!==JSON.stringify(groups[index])))throw new UserError('Verified story groups changed during summary rewrite. No results saved.');
- return result;
+ return Promise.all(cards.map(async(card,index)=>{
+  const ids=groups[index];if(ids.length===card.source_item_ids.length)return card;
+  const reports=ids.map(id=>items.find(item=>item.item_id===id)!);
+  const rewritten=await responseText(PROMPT+'\nWrite exactly ONE card about the first report, with the remaining reports as verified same-event coverage. Use only the supplied reports. Excluded material must contribute NO claims. Keep the headline and summary supported by the primary report and preserve uncertainty.',JSON.stringify({run_id:run.run_id,input_hash:run.input_hash,items:reports}),2000,analysisFormat(reports));
+  const result=validateAnalysis(JSON.parse(rewritten),{...run,items:reports});
+  if(result.length!==1)throw new UserError('Expected one rewritten story for the verified reports. No results saved.');
+  return {...result[0],source_item_ids:ids};
+ }));
 }
 export async function testAI(){try{if((await responseText('Reply with exactly OK.','Connection test',16)).trim()!=='OK')throw new UserError('Unexpected connection-test response');await setSetting(true,'Connected · gpt-4.1-mini');return {connected:true};}catch(e){await setSetting(false,e instanceof UserError?e.message:'Connection failed');throw e;}}
 const ST_SOURCE:Source={country:'Reference',source_name:'The Straits Times',url:'https://www.straitstimes.com/news/asia/rss.xml',website:'https://www.straitstimes.com/asia',language:'en'};
