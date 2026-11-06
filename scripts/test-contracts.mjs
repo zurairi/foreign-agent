@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {validateAnalysis} from '../lib/contracts.ts';
 const run={run_id:'current',input_hash:'hash',items:[{item_id:'my',country:'Malaysia'},{item_id:'cn',country:'China'}]};
-const card={source_item_ids:['my'],headline:'中国发展 – original title',summary:['A source says something.'],why_it_matters:{relevance:'No direct Singapore connection is established in the source.',significance:'A new development needs editorial review.'},priority_band:'Monitor',priority_reason:'Impact; relevance; freshness; novelty.',verification_flags:['Check primary source.']};
+const card={source_item_ids:['my'],headline:'中国发展 – original title',summary:['A source says something.'],why_it_matters:{relevance:'Latest context: a new source development needs review.',significance:'A new development needs editorial review.'},priority_band:'Monitor',priority_reason:'Impact; relevance; freshness; novelty.',verification_flags:['Check primary source.']};
 const output=()=>({run_id:run.run_id,input_hash:run.input_hash,cards:[structuredClone(card)]});
 test('valid analysis preserves Chinese and source IDs',()=>assert.equal(validateAnalysis(output(),run)[0].headline,card.headline));
 test('missing source ID rejected',()=>{const v=output();v.cards[0].source_item_ids=['invented'];assert.throws(()=>validateAnalysis(v,run),/known source/);});
@@ -22,3 +22,5 @@ test('missing owner configuration fails closed',()=>assert.equal(ownerCanWrite('
 
 test('summaries must have one to three short bullets',()=>{for(const summary of ['paragraph',[],['a','b','c','d'],['x'.repeat(201)]]){const v=output();v.cards[0].summary=summary;assert.throws(()=>validateAnalysis(v,run),/bullet/);}});
 test('new priorities accepted and old priorities rejected',()=>{for(const band of ['Important','Monitor','Good to know']){const v=output();v.cards[0].priority_band=band;assert.equal(validateAnalysis(v,run)[0].priority_band,band);}const v=output();v.cards[0].priority_band='Watch';assert.throws(()=>validateAnalysis(v,run),/priority/);});
+
+test('six stories per country accepted, seven for one country rejected',()=>{const items=Array.from({length:14},(_,i)=>({item_id:'item'+i,country:i<7?'Malaysia':'China'}));const make=ids=>({run_id:'current',input_hash:'hash',cards:ids.map(id=>({...structuredClone(card),source_item_ids:['item'+id]}))});const combined=[0,1,2,3,4,5,7,8,9,10,11,12];assert.equal(validateAnalysis(make(combined),{...run,items}).length,12);assert.throws(()=>validateAnalysis(make([0,1,2,3,4,5,6]),{...run,items}),/six stories per country/);});

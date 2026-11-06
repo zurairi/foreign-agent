@@ -75,3 +75,7 @@ Shortlist cards use one primary report each to keep summaries focused on a singl
 Every check uses one fixed publication window from check start minus three hours to check start. Each source contributes up to eight newest eligible items. RSS candidates are inspected up to 100 entries; an empty recent feed triggers website fallback. Unknown, invalid and future timestamps are omitted with source-level warnings. An empty source window is a successful zero-item collection, not a source failure.
 
 ST matches are retained for selection and labelled Covered by ST with a stored reference link on cards and digest. Failure to compare ST coverage does not suppress analysis; coverage is labelled unknown. The reference remains limited to current ST Asia RSS entries. Why it may matter leads with a supported Singapore connection, or the specific latest source development and context when no clear Singapore link exists, then explains significance.
+
+## Independent country shortlists
+
+Malaysia and China are analysed separately, each selecting up to six distinct recent developments. The combined view can contain up to twelve cards. The server rejects more than six cards for either country; insufficient suitable stories produce fewer cards rather than filler.

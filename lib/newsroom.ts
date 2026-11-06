@@ -144,10 +144,18 @@ export async function runCheck(){
  run.st_coverage.status='checked';
  }catch(e){run.st_coverage.status='failed';run.st_coverage.error=e instanceof UserError?e.message:'ST comparison unavailable';run.st_coverage.matches=[];}}
  await db().prepare('UPDATE runs SET body=? WHERE run_id=?').bind(JSON.stringify(run),run.run_id).run();
- const exported=await exportInputs(run.run_id);if(!exported.items.length){await importAnalysis({run_id:run.run_id,input_hash:run.input_hash,cards:[]},'Runtime OpenAI · gpt-4.1-mini');return run;}const text=await responseText(PROMPT+'\nReturn only JSON matching: '+JSON.stringify(exported.expected_output),JSON.stringify({run_id:run.run_id,input_hash:run.input_hash,items:exported.items}),5000,analysisFormat(exported.items));let output;try{output=JSON.parse(text);validateAnalysis(output,run);}catch(validationError){
- const repaired=await responseText(PROMPT+'\nCorrect the rejected proposal. '+(validationError instanceof Error?validationError.message:'Invalid JSON')+' Return only a valid corrected shortlist, using each item in at most one card. Never combine countries or unrelated events.',JSON.stringify({run_id:run.run_id,input_hash:run.input_hash,items:exported.items,rejected_proposal:text}),5000,analysisFormat(exported.items));
- try{output=JSON.parse(repaired);validateAnalysis(output,run);}catch{throw new UserError('AI shortlist failed validation after one correction attempt. No results saved.');}}
- await importAnalysis(output,'Runtime OpenAI · gpt-4.1-mini');}catch(e){if(run.st_coverage.status==='ready')run.st_coverage.status='failed';run.analysis_error=e instanceof UserError?e.message:'Runtime analysis failed; manual import remains available';run.analysis_mode='Runtime analysis failed';await db().prepare('UPDATE runs SET body=? WHERE run_id=?').bind(JSON.stringify(run),run.run_id).run();}}
+ const exported=await exportInputs(run.run_id);
+ const desks=await Promise.all(['Malaysia','China'].map(async country=>{
+  const items=exported.items.filter(item=>item.country===country);if(!items.length)return [] as Card[];
+  const input={run_id:run.run_id,input_hash:run.input_hash,items};const deskRun={...run,items};
+  const instructions=PROMPT+'\nYou are selecting only the '+country+' desk. Select up to six distinct stories, independently of the other country. Return only JSON matching: '+JSON.stringify(exported.expected_output);
+  const text=await responseText(instructions,JSON.stringify(input),6500,analysisFormat(items));
+  try{return validateAnalysis(JSON.parse(text),deskRun);}catch(validationError){
+   const repaired=await responseText(instructions+'\nCorrect the rejected proposal: '+(validationError instanceof Error?validationError.message:'Invalid JSON')+'. Use each item once; never merge unrelated developments.',JSON.stringify({...input,rejected_proposal:text}),6500,analysisFormat(items));
+   try{return validateAnalysis(JSON.parse(repaired),deskRun);}catch{throw new UserError(country+' shortlist failed validation after one correction attempt. No results saved.');}
+  }
+ }));
+ await importAnalysis({run_id:run.run_id,input_hash:run.input_hash,cards:desks.flat()},'Runtime OpenAI · gpt-4.1-mini');}catch(e){if(run.st_coverage.status==='ready')run.st_coverage.status='failed';run.analysis_error=e instanceof UserError?e.message:'Runtime analysis failed; manual import remains available';run.analysis_mode='Runtime analysis failed';await db().prepare('UPDATE runs SET body=? WHERE run_id=?').bind(JSON.stringify(run),run.run_id).run();}}
  return run;
 }
 
