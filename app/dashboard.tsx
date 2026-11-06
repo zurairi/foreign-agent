@@ -28,7 +28,8 @@ function STCoverage({items,coverage}:{items:Item[];coverage?:Run['st_coverage']}
  if(coverage?.status!=='checked')return <p className="fa-check">ST coverage unknown — comparison unavailable.</p>;
  const ids=new Set(items.map(item=>item.item_id));const matches=coverage.matches.filter(match=>ids.has(match.item_id)).map(match=>coverage.references.find(ref=>ref.item_id===match.st_id)).filter((ref):ref is Item=>!!ref);
  if(!matches.length)return null;
- return <div className="fa-st-coverage"><strong>Covered by ST</strong><ul>{matches.map(ref=><li key={ref.item_id}><a href={ref.url} target="_blank" rel="noreferrer">{ref.title}</a></li>)}</ul></div>;
+ const latest=matches.sort((a,b)=>(Date.parse(b.published_at || '') || 0)-(Date.parse(a.published_at || '') || 0))[0];
+ return <div className="fa-st-coverage"><strong>Covered by ST</strong><ul><li><a href={latest.url} target="_blank" rel="noreferrer">{latest.title}</a></li></ul></div>;
 }
 export const ForeignDeskShortlistPrototype = () => {
   const [state, setState] = useState<State | null>(null);
