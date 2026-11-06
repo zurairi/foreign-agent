@@ -13,7 +13,14 @@ type State = { latest_run: Run | null; analysis: Analysis | null; analysis_items
 const priorityName=(value:string)=>({'Review now':'Important','Watch':'Monitor','Lower priority':'Good to know'}[value]||value);
 const summaryBullets=(value:string[]|string)=>Array.isArray(value)?value.slice(0,3):[value];
 const countries = ['All coverage', 'Malaysia', 'China'];
-const formatTime = (value?: string | null) => value ? new Intl.DateTimeFormat('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value)) + ' SGT' : 'Unknown';
+const formatTime = (value?: string | null) => {
+  if (!value) return 'Unknown';
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return 'Unknown';
+  const parts = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Singapore',day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(date);
+  const part = (type: string) => parts.find(p => p.type === type)?.value;
+  return `${part('month')} ${part('day')}, ${part('year')}, ${part('hour')}:${part('minute')} ${part('dayPeriod')?.toLowerCase()} SGT`;
+};
 const publication = (item: Item) => item.published_at ? formatTime(item.published_at) : item.published_at_text ? item.published_at_text + ' (publisher time; timezone unstated)' : 'Publication time unknown';
 async function api<T = Record<string, unknown>>(path: string, body?: unknown) {
   const response = await fetch('/api/' + path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
