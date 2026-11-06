@@ -72,7 +72,8 @@ export const ForeignDeskShortlistPrototype = () => {
     finally { await refresh().catch(() => {}); setBusy(false); }
   }
   const collectionLabel = state?.latest_run ? [...new Set(rawItems.map(i => i.collection_mode))].join(' + ') || 'Collection failed' : 'Not collected yet';
-  const statusText = `${collectionLabel} · ${analysis ? analysis.analysis_mode : 'Analysis pending'} · ${state?.ai_enabled ? 'Runtime AI connected' : 'Runtime AI disabled'}.`;
+  const modelLabel = (state?.runtime_ai.match(/gpt-[a-z0-9.-]+/i)?.[0] || analysis?.analysis_mode.match(/gpt-[a-z0-9.-]+/i)?.[0])?.replace(/^gpt-/i, 'GPT-').replace(/-mini$/, ' mini');
+  const statusText = `${collectionLabel} · ${state?.ai_enabled ? modelLabel || 'Model not reported' : 'AI analysis disabled'}`;
   return <div className="fa-app">
     <a className="fa-skip" href="#shortlist">Skip to shortlist</a>
     <header className="fa-header"><img src={masthead} alt="The Straits Times" className="fa-masthead"/><div className="fa-brand"><strong>Foreign Agent</strong><span>FOREIGN DESK · MONITORING</span></div><span className="fa-concept">Hackathon prototype · Alpha</span></header>
