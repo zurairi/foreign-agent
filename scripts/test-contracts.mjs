@@ -14,3 +14,8 @@ test('same source cannot appear in two cards',()=>{const v=output();v.cards.push
 test('cross-country grouping rejected',()=>{const v=output();v.cards[0].source_item_ids=['my','cn'];assert.throws(()=>validateAnalysis(v,run),/Cross-country/);});
 test('empty shortlist accepted without filler',()=>{const v=output();v.cards=[];assert.equal(validateAnalysis(v,run).length,0);});
 test('invalid and oversized output rejected',()=>{for(const v of [null,[],{},'bad',...Array.from({length:1},()=>({...output(),cards:Array(6).fill(card)}))])assert.throws(()=>validateAnalysis(v,run));});
+const {ownerCanWrite}=await import('../lib/access.ts');
+test('anonymous visitors cannot write',()=>assert.equal(ownerCanWrite(null,'owner@example.test'),false));
+test('another signed-in user cannot write',()=>assert.equal(ownerCanWrite('viewer@example.test','owner@example.test'),false));
+test('owner can write and comparison ignores email case',()=>assert.equal(ownerCanWrite('Owner@Example.Test','owner@example.test'),true));
+test('missing owner configuration fails closed',()=>assert.equal(ownerCanWrite('owner@example.test',undefined),false));

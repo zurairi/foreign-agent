@@ -1,12 +1,12 @@
 # Foreign Agent
 
-Private newsroom dashboard for Malaysia and China, built for Team Foreign Agent’s hackathon. The supplied ST masthead and React interface are preserved. This is a team concept, not an official ST product.
+Newsroom dashboard for Malaysia and China, built for Team Foreign Agent’s hackathon. The supplied ST masthead and React interface are preserved. This is a team concept, not an official ST product.
 
 ## Hosted dashboard
 
 https://foreign-agent-newsroom.bubblygrape513.chatgpt.site
 
-The Site is private to its owner and requires ChatGPT sign-in. Its database is separate from the original local pilot. A saved result remains available across browser sessions. Public discussion, Slack sending and scheduled checks are not implemented.
+Anyone with the link can view the Site without signing in. Collection, imports and AI connection tests require the owner to sign in. The owner email is configured server-side as the secret OWNER_EMAIL; it is never sent to the browser. Its database is separate from the original local pilot. A saved result remains available across browser sessions. Public discussion, Slack sending and scheduled checks are not implemented.
 
 - **Collect latest** retrieves at most 20 Malay Mail RSS items and eight Global Times public website items. Stale or failed RSS triggers the public website fallback. Blocks are reported without bypassing access controls.
 - **Export inputs** downloads source IDs, run identity, input fingerprint, an analysis prompt and expected JSON format.
