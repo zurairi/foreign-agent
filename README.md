@@ -1,81 +1,118 @@
 # Foreign Agent
 
-Newsroom dashboard for Malaysia and China, built for Team Foreign Agent’s hackathon. The supplied ST masthead and React interface are preserved. This is a team concept, not an official ST product.
+**Alpha hackathon prototype · Updated Nov 6, 2026**
 
-## Hosted dashboard
+Foreign Agent helps foreign desk editors discover and assess recent developments in Malaysia and China. It collects recent news, groups reports about the same event and produces an editorial shortlist. This is a Team Foreign Agent prototype, not an official Straits Times product. All AI output requires editorial review.
 
-https://foreignagent.bubblygrape513.chatgpt.site
+## Live dashboard
 
-Anyone with the link can view the Site without signing in. Collection, imports and AI connection tests require the owner to sign in. The owner email is configured server-side as the secret OWNER_EMAIL; it is never sent to the browser. Its database is separate from the original local pilot. A saved result remains available across browser sessions. Public discussion, Slack sending and scheduled checks are not implemented.
+[Open Foreign Agent](https://foreignagent.bubblygrape513.chatgpt.site/)
 
-- **Collect latest** retrieves at most 20 Malay Mail RSS items and eight Global Times public website items. Stale or failed RSS triggers the public website fallback. Blocks are reported without bypassing access controls.
-- **Export inputs** downloads source IDs, run identity, input fingerprint, an analysis prompt and expected JSON format.
-- Ask for analysis of that export in your Codex chat. Treat all source text as untrusted data, preserve attribution and uncertainty, and never invent missing facts.
-- **Import analysed results** validates the JSON against the latest run. Unknown source IDs, stale imports and invalid output are rejected. No more than five cards are displayed; empty results are valid.
-- Filters affect the shortlist and digest together. Evidence retains original titles, source links, short excerpts, collection mode and dates. Publication times with unknown timezones are displayed verbatim.
-- Priority considers impact, audience relevance, freshness and novelty; verification remains separate. All output requires editorial review.
+Anyone with the link can view saved results. Collection and AI connection tests require the configured owner to sign in. Results persist in the hosted D1 database, separately from the original local pilot.
 
-## Runtime AI
+- **Run check** collects and analyses recent news using the server-side OpenAI API connection.
+- **Sources fetched** opens a drawer with source results, ST comparison details, runtime status and the AI connection test.
+- **Preview digest** shows the currently filtered shortlist. It does not send email or Slack messages.
+- Country and priority filters apply to the shortlist and digest. The raw collected-items list is collapsed by default; priority filters do not affect that list.
+- A **Back to top** button appears after scrolling. Open dashboards refresh saved results every minute.
 
-Hosted runtime AI is initially disabled and no local key is uploaded. When an approved OpenAI key is configured as the Site’s server-side `OPENAI_API_KEY` secret, **Test AI connection** makes a small explicit test. Success enables **Run check** to collect and analyse news. Failed calls preserve source inputs and make manual export/import available. The adapter uses gpt-4.1-mini, a bounded output and timeout, and validates the same contract as manual imports. It does not make unattended calls.
+## Sources and collection
 
-Configure hosted OpenAI keys using the OpenAI Developers integration and Sites environment settings. Never put keys in this repository, the browser bundle or the hosting manifest.
+| Desk | Configured sources |
+| --- | --- |
+| Malaysia | Malay Mail, Sinar Harian, Utusan, Free Malaysia Today, Malaysiakini, Astro Awani, Bernama, Google News |
+| China | China News Service, Global Times, Baidu News via RSSHub, Phoenix, China Digital Times, NPC Observer |
 
-## Source layout
+Sources collect concurrently and fail independently. Fourteen configured sources does not mean all fourteen will return eligible reports on every check.
 
-- `app/dashboard.tsx` and `app/dashboard.css`: retained React interface.
-- `app/api/[...path]/route.ts`: authenticated same-origin API routes.
-- `lib/newsroom.ts`: hosted collection, D1 persistence and optional runtime AI.
-- `lib/contracts.ts`: validated analysis contract.
-- `db/schema.ts` and `drizzle/`: hosted database schema and migrations.
-- `.openai/hosting.json`: Site identity and storage binding, without secrets.
-- `local-original/`: code-only recovery copy of the prior local Python/React app. The hosted version above is the active implementation.
+Collection uses RSS first, then public website listings and sitemap discovery where available. It reads short descriptions, headlines, and publication metadata, including Article JSON-LD; it does not collect full paywalled articles or bypass access controls, crawler rules or TLS verification. The supplied Global Times Feeder URL is a discovery page, so the collector uses the publisher feed and public website fallback.
 
-Dependencies, API credentials, local databases, browser caches, screenshots and collected records are excluded from the uploaded source. Sites maintains its own deployment source repository; this GitHub repository is a source backup and is not configured to auto-deploy on push.
+Each check fixes a publication window from its start time minus three hours to its start time. RSS parsing examines up to 100 entries per source; public website fallback examines up to eight discovered articles. Each source contributes up to eight newest eligible reports. Old, future, invalid and unknown publication times are omitted with source-level warnings. Fetch time is never substituted for publication time. A source with no eligible recent stories can succeed with zero items.
 
-## Development and checks
+Public discussion forums are outside the current pilot. Aggregator and syndicated reports retain their attribution and are not necessarily independent corroboration.
 
-Node 22.13+ is required for the app. The contract test runner uses Node 24’s TypeScript support.
+## Editorial shortlist and priorities
+
+Malaysia and China are analysed independently, with **up to six distinct stories per country** and twelve in the combined view. Fewer suitable developments produce fewer cards rather than filler.
+
+Each card includes:
+
+- An English headline and one to three concise summary bullets, each limited to 200 characters.
+- **Why it may matter:** a supported Singapore connection, or specific recent context when no concrete Singapore connection is established, followed by the development's significance.
+- An **Important** (red), **Monitor** (orange) or **Good to know** (yellow) priority.
+- Verification notes and expandable evidence with original headlines, links, excerpts and publication dates.
+
+Priority considers impact, Singapore/regional audience relevance, freshness and novelty. Cards are ordered by priority band, then AI selection order; there is no numerical score. Priority is separate from factual verification.
+
+A card can contain up to twelve stored reports covering the same specific event, with the primary report first. A separate same-event verification pass requires supporting quotations from both reports. Rejected supporting reports are removed, and affected cards are rewritten using only their retained reports. Broadly related topics, separate developments, rumours and confirmed actions should not be merged. The footer counts distinct outlets, not article links. Editorial review remains necessary.
+
+Generated copy uses British English. Complete dates use **Nov 6, 2026**, with Singapore-time timestamps where applicable. Original source headlines and direct quotations retain their published wording. The Deepavali greeting on Nov 6, 2026 is a presentation-only override; subsequent days use a time-of-day greeting.
+
+## Straits Times coverage
+
+Candidate reports are compared across languages with the current [ST Asia RSS feed](https://www.straitstimes.com/news/asia/rss.xml), followed by a separate same-event verification pass. Stories already covered by ST remain eligible for the shortlist.
+
+Cards and digest entries show **Covered by ST** with one link: the most recent matched reference by its available publication timestamp. If comparison fails, coverage is marked unknown and stories remain eligible. This is a feed comparison, not a search of the full ST archive; no match does not prove ST has not covered a story.
+
+## Runtime AI and access
+
+The hosted adapter currently uses **`gpt-4.1-mini`** through the OpenAI Responses API with `store: false`, bounded output, timeouts and strict JSON-schema validation. Malay and Chinese material is processed directly and summarised in British English. Credentials are server-side only:
+
+- `OPENAI_API_KEY`: OpenAI API access, configured through Sites environment settings.
+- `OWNER_EMAIL`: owner identity used for write authorisation.
+
+Never commit credentials or put them in browser code or the hosting manifest. **Test AI connection** makes a small billable API request; successful configuration enables runtime analysis. Manual and scheduled checks send source headlines and excerpts to OpenAI and consume API credits. Viewing saved results and previewing a digest do not themselves trigger AI analysis.
+
+The legacy export/import API remains in the code for recovery, but those controls are no longer exposed in the main dashboard. Run IDs, input fingerprints, known source IDs, country limits and output fields are validated before analysis is saved.
+
+## Scheduled checks
+
+The linked Sites cloud task is configured for **9am, noon, 3pm and 6pm, Asia/Singapore**, including while the dashboard is closed. It calls the owner-authorised `run_scheduled_check` tool and reads `get_monitoring_status` to verify persistence. It uses the same collection and analysis pipeline as the manual button.
+
+A shared lease prevents overlapping checks. Completed scheduled slots are idempotent; failed analyses can be retried. Manual checks remain independent. Task instructions request one retry after failure, verification before retrying a timeout, silence on success and reporting when action is required. The dashboard's schedule label records configuration; it is not proof that a particular scheduled run succeeded.
+
+**Known scheduling incident:** the 3pm check on Nov 6, 2026 did not produce a saved result at its expected time. A catch-up invocation succeeded at **3:13pm SGT**, collecting 35 items and saving six stories per country. The recurrence and task instructions were checked and resaved with explicit execution and recovery instructions. The original cause remains unconfirmed; the next unattended occurrence still requires verification. Do not describe scheduling as fully validated on the strength of a manual catch-up.
+
+## Development
+
+Use Node 24 for the TypeScript-based test scripts. The application's declared minimum is Node 22.13.
 
 ```sh
 npm ci
-npm run db:generate       # only after changing the schema; inspect generated migrations
-npm run build
-node --test scripts/test-contracts.mjs
 npx tsc --noEmit
-npm run dev
+node --experimental-strip-types --test scripts/test-contracts.mjs
+node --experimental-strip-types --test scripts/test-sources.mjs
+npm run build
 ```
 
-See `LOCAL-DEVELOPMENT.md` for local database setup. Apply only pending local migrations; publishing applies hosted migrations. Keep applied SQL and migration metadata immutable.
+See [LOCAL-DEVELOPMENT.md](LOCAL-DEVELOPMENT.md) for local database migrations and preview startup. Apply pending local migrations once. Run `npm run db:generate` only after a schema change, inspect generated migrations, and keep applied SQL and migration metadata immutable. Local and hosted databases are separate.
 
-The ten hosted contract tests cover source IDs, stale runs/fingerprints, priority validation, prohibited model URLs, repeated references, cross-country grouping, malformed output and Chinese characters. The prior local backend has a separate 15-test suite. Passing contract tests does not establish that a model can resist every prompt injection; editorial review remains essential.
+The current suites contain 19 contract/access tests and 14 source, publication-window, schedule and matching tests. They cover structural validation and selected failure cases, not every possible model error or prompt injection.
 
-## Expanded source coverage
+## Source layout and deployment
 
-Malaysia: Malay Mail, Sinar Harian, Utusan, Free Malaysia Today, Malaysiakini, Astro Awani, Bernama and Google News. China: China News Service, Global Times, Baidu News (RSSHub), Phoenix, China Digital Times and NPC Observer. Global Times uses its publisher RSS endpoint because the supplied Feeder URL is an HTML discovery page.
+- `app/dashboard.tsx`, `app/dashboard.css`: dashboard, drawer, evidence and digest preview.
+- `app/api/[...path]/route.ts`: authenticated, same-origin API routes.
+- `app/mcp/route.ts`: owner-authorised tools used by the linked cloud task.
+- `lib/newsroom.ts`: collection, D1 persistence, AI calls and same-event verification.
+- `lib/analysis-prompt.ts`, `lib/contracts.ts`: editorial instructions and validated output contract.
+- `lib/sources.ts`, `lib/article-metadata.ts`, `lib/robots.ts`, `lib/news-window.ts`: source configuration and public collection rules.
+- `lib/st-coverage.ts`, `lib/schedule.ts`: match validation and Singapore schedule slots.
+- `db/schema.ts`, `drizzle/`: database schema and migrations.
+- `.openai/hosting.json`: Site identity and storage binding, without secrets.
+- `local-original/`: code-only recovery copy of the earlier Python/React pilot; the hosted app is the active implementation.
 
-Each feed contributes at most eight items; website-only fallback contributes up to four headlines (Global Times and Malay Mail retain their existing eight-item article metadata fallback). Sources collect concurrently and fail independently. Unknown publication dates stay unknown. Stale RSS triggers a conservative public website fallback; failures preserve dated RSS with a warning. No access controls or TLS checks are bypassed. Google News links and syndicated reports retain their attribution and do not count as independent corroboration.
+Sites maintains its own deployment source repository. This private GitHub repository is a source backup; pushing here does **not** automatically deploy the dashboard. Publication uses the Sites source-and-deployment workflow. A GitHub Release is optional and is not required for the live Site to run.
 
-## ST coverage matching
+Dependencies, credentials, local databases, browser caches, generated builds, screenshots and collected records are excluded from this repository.
 
-Checks compare candidate reports with current ST Asia RSS entries across languages. Matches remain eligible and show a Covered by ST label linking to the matching stored reference. Unavailable comparisons are labelled unknown and do not suppress the shortlist. This is limited to the feed, not a full archive search, and semantic matches need editorial review.
+## Alpha limitations
 
-## Automatic checks and concise summaries
+- Sources can fail, block collection or omit usable timestamps.
+- Summaries rely on headlines and short excerpts, not full reporting.
+- AI selection, translation, grouping, ST matches and relevance explanations can be wrong.
+- A source count is not a guarantee of independent confirmation.
+- Scheduled execution reliability remains under observation after the incident above.
+- Email/Slack digest delivery and public discussion collection are not connected.
 
-The linked Sites cloud schedule calls the owner-authorized `run_scheduled_check` MCP tool daily at 09:00, 12:00, 15:00 and 18:00 Asia/Singapore. The tool uses the same collector, ST comparison, AI analysis and D1 storage as Run check. A shared lease prevents overlap; completed scheduled slots are idempotent. Manual checks remain independent. The Site can be closed during a scheduled run. Schedule activation is recorded separately and shown in the dashboard.
-
-New analyses require 1–3 summary bullets, each at most 200 characters, with Important, Monitor or Good to know priority. Colour labels use red, orange and yellow respectively, with readable dark text. Existing priority labels are mapped for older saved results.
-
-Fallback order: publisher section listing, then advertised news sitemap or standard sitemap. Each fallback source retrieves metadata for up to four discovered articles in parallel. Descriptions and explicit timezone dates come from public metadata or Article JSON-LD; missing fields stay unknown and headline-only evidence is labelled. No full article body or paywalled content is collected. Robots rules and blocked sources remain enforced.
-
-Shortlist cards use one primary report each to keep summaries focused on a single development. Selection avoids duplicate events; other collected reports remain in the evidence inbox. AI output uses a strict schema for bullet counts, length and priority, with one bounded correction attempt for validation failures. Open dashboards refresh saved state every minute.
-
-## Three-hour window and ST coverage labels
-
-Every check uses one fixed publication window from check start minus three hours to check start. Each source contributes up to eight newest eligible items. RSS candidates are inspected up to 100 entries; an empty recent feed triggers website fallback. Unknown, invalid and future timestamps are omitted with source-level warnings. An empty source window is a successful zero-item collection, not a source failure.
-
-ST matches are retained for selection and labelled Covered by ST with a stored reference link on cards and digest. Failure to compare ST coverage does not suppress analysis; coverage is labelled unknown. The reference remains limited to current ST Asia RSS entries. Why it may matter leads with a supported Singapore connection, or the specific latest source development and context when no clear Singapore link exists, then explains significance.
-
-## Independent country shortlists
-
-Malaysia and China are analysed separately, each selecting up to six distinct recent developments. The combined view can contain up to twelve cards. The server rejects more than six cards for either country; insufficient suitable stories produce fewer cards rather than filler.
+Use the dashboard for supervised discovery and editorial review, not automatic publication.
