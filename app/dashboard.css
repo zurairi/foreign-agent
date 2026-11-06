@@ -8,3 +8,5 @@
 @media(prefers-reduced-motion:no-preference){.fa-notice{animation:notice-in .18s ease-out}@keyframes notice-in{from{opacity:.5}to{opacity:1}}}
 
 .fa-priority.fa-important{background:#FDE5E5;color:#941E25}.fa-priority.fa-monitor{background:#FFE8D0;color:#8A3900}.fa-priority.fa-good-to-know{background:#FFF3AD;color:#655000}.fa-summary{padding-left:20px;font-size:14px;line-height:1.6;margin-bottom:0}.fa-summary li{padding:0;margin:6px 0;border:0}.fa-dialog .fa-summary li{padding:0;margin:6px 0;border:0}.fa-dialog .fa-summary{list-style:disc}.fa-dialog ol>li{padding:18px 0}
+
+.fa-window-note{font-size:12px;color:var(--muted);margin:16px 0 10px!important}.fa-st-coverage{margin-top:12px;font-size:12px;background:#EDF1FD;padding:10px 12px;border-radius:4px}.fa-st-coverage strong{color:var(--small-blue)}.fa-st-coverage ul{padding-left:18px;margin:5px 0 0}.fa-st-coverage li{padding:0;border:0}

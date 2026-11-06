@@ -56,18 +56,22 @@ Malaysia: Malay Mail, Sinar Harian, Utusan, Free Malaysia Today, Malaysiakini, A
 
 Each feed contributes at most eight items; website-only fallback contributes up to four headlines (Global Times and Malay Mail retain their existing eight-item article metadata fallback). Sources collect concurrently and fail independently. Unknown publication dates stay unknown. Stale RSS triggers a conservative public website fallback; failures preserve dated RSS with a warning. No access controls or TLS checks are bypassed. Google News links and syndicated reports retain their attribution and do not count as independent corroboration.
 
-## ST coverage exclusion
+## ST coverage matching
 
-Each Run check fetches up to 100 current ST Asia RSS entries and compares all collected candidates using a separate runtime AI request, including translated headlines. Strict ID validation rejects invented matches; matched candidate IDs cannot enter the shortlist, including via manual import. Raw source items remain available for evidence and excluded pairs can be inspected. If ST retrieval or comparison fails, the shortlist is withheld. This is a semantic screening aid limited to the current feed, not an exhaustive ST archive search; model matches can be imperfect. Run check now makes two bounded AI calls.
-
-Priority is a qualitative AI editorial assessment: impact, Singapore/regional relevance, freshness and novelty. Cards sort by Review now, Watch, Lower priority, preserving model order inside a band. No numeric score or popularity metric is used.
+Checks compare candidate reports with current ST Asia RSS entries across languages. Matches remain eligible and show a Covered by ST label linking to the matching stored reference. Unavailable comparisons are labelled unknown and do not suppress the shortlist. This is limited to the feed, not a full archive search, and semantic matches need editorial review.
 
 ## Automatic checks and concise summaries
 
-The linked Sites cloud schedule calls the owner-authorized `run_scheduled_check` MCP tool daily at 09:00, 12:00, 15:00 and 18:00 Asia/Singapore. The tool uses the same collector, ST exclusion, AI analysis and D1 storage as Run check. A shared lease prevents overlap; completed scheduled slots are idempotent. Manual checks remain independent. The Site can be closed during a scheduled run. Schedule activation is recorded separately and shown in the dashboard.
+The linked Sites cloud schedule calls the owner-authorized `run_scheduled_check` MCP tool daily at 09:00, 12:00, 15:00 and 18:00 Asia/Singapore. The tool uses the same collector, ST comparison, AI analysis and D1 storage as Run check. A shared lease prevents overlap; completed scheduled slots are idempotent. Manual checks remain independent. The Site can be closed during a scheduled run. Schedule activation is recorded separately and shown in the dashboard.
 
 New analyses require 1–3 summary bullets, each at most 200 characters, with Important, Monitor or Good to know priority. Colour labels use red, orange and yellow respectively, with readable dark text. Existing priority labels are mapped for older saved results.
 
 Fallback order: publisher section listing, then advertised news sitemap or standard sitemap. Each fallback source retrieves metadata for up to four discovered articles in parallel. Descriptions and explicit timezone dates come from public metadata or Article JSON-LD; missing fields stay unknown and headline-only evidence is labelled. No full article body or paywalled content is collected. Robots rules and blocked sources remain enforced.
 
 Shortlist cards use one primary report each to keep summaries focused on a single development. Selection avoids duplicate events; other collected reports remain in the evidence inbox. AI output uses a strict schema for bullet counts, length and priority, with one bounded correction attempt for validation failures. Open dashboards refresh saved state every minute.
+
+## Three-hour window and ST coverage labels
+
+Every check uses one fixed publication window from check start minus three hours to check start. Each source contributes up to eight newest eligible items. RSS candidates are inspected up to 100 entries; an empty recent feed triggers website fallback. Unknown, invalid and future timestamps are omitted with source-level warnings. An empty source window is a successful zero-item collection, not a source failure.
+
+ST matches are retained for selection and labelled Covered by ST with a stored reference link on cards and digest. Failure to compare ST coverage does not suppress analysis; coverage is labelled unknown. The reference remains limited to current ST Asia RSS entries. Why it may matter leads with a supported Singapore connection, or the specific latest source development and context when no clear Singapore link exists, then explains significance.

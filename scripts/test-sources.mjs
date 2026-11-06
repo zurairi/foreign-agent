@@ -26,3 +26,9 @@ test('JSON-LD article metadata and unknown timezones preserve provenance',()=>{c
 test('sitemaps reject off-site links and XML entities',()=>{assert.deepEqual(sitemapLinks('<urlset><url><loc>https://example.test/news/1</loc></url><url><loc>https://other.test/</loc></url></urlset>','https://example.test'),['https://example.test/news/1']);assert.deepEqual(sitemapLinks('<!DOCTYPE evil><loc>https://example.test/news/1</loc>','https://example.test'),[]);});
 const {singaporeSlot}=await import('../lib/schedule.ts');
 test('Singapore schedule handles UTC conversion, daily boundaries and manual-independent slots',()=>{assert.equal(singaporeSlot(new Date('2026-11-06T00:59:00Z')),null);assert.equal(singaporeSlot(new Date('2026-11-06T01:00:00Z')),'2026-11-06T09:00+08:00');assert.equal(singaporeSlot(new Date('2026-11-06T04:00:00Z')),'2026-11-06T12:00+08:00');assert.equal(singaporeSlot(new Date('2026-11-06T07:00:00Z')),'2026-11-06T15:00+08:00');assert.equal(singaporeSlot(new Date('2026-11-06T10:00:00Z')),'2026-11-06T18:00+08:00');assert.equal(singaporeSlot(new Date('2026-11-06T16:01:00Z')),null);});
+
+const {recentItems}=await import('../lib/news-window.ts');
+test('three-hour publication window includes boundary and excludes old, future and unknown dates',()=>{
+ const asOf='2026-11-06T06:00:00Z';const items=[{id:'edge',published_at:'2026-11-06T03:00:00Z'},{id:'new',published_at:'2026-11-06T05:59:00Z'},{id:'old',published_at:'2026-11-06T02:59:59Z'},{id:'future',published_at:'2026-11-06T06:00:01Z'},{id:'unknown',published_at:null},{id:'invalid',published_at:'bad'}];
+ assert.deepEqual(recentItems(items,asOf).map(i=>i.id),['new','edge']);
+});
