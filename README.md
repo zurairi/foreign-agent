@@ -4,7 +4,7 @@ Newsroom dashboard for Malaysia and China, built for Team Foreign Agent’s hack
 
 ## Hosted dashboard
 
-https://foreign-agent-newsroom.bubblygrape513.chatgpt.site
+https://foreignagent.bubblygrape513.chatgpt.site
 
 Anyone with the link can view the Site without signing in. Collection, imports and AI connection tests require the owner to sign in. The owner email is configured server-side as the secret OWNER_EMAIL; it is never sent to the browser. Its database is separate from the original local pilot. A saved result remains available across browser sessions. Public discussion, Slack sending and scheduled checks are not implemented.
 
