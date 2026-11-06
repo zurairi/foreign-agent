@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {readFile} from 'node:fs/promises';
+import ts from 'typescript';
+const file=new URL('../lib/sources.ts',import.meta.url);
+const source=(await readFile(file,'utf8')).replace("'./contracts'",JSON.stringify(new URL('../lib/contracts.ts',import.meta.url).href));
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const {SOURCES,parseFeed}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const feed=(items)=>'<rss><channel>'+items+'</channel></rss>';
+const item=(url,title='标题 &amp; berita',date='Fri, 06 Nov 2026 10:00:00 +0800')=>`<item><title><![CDATA[${title}]]></title><link>${url}</link><pubDate>${date}</pubDate><description><![CDATA[<p>Short excerpt</p>]]></description></item>`;
+test('all 14 requested and retained sources are unique and HTTPS',()=>{assert.equal(SOURCES.length,14);assert.equal(new Set(SOURCES.map(s=>s.source_name)).size,14);assert.equal(SOURCES.filter(s=>s.country==='Malaysia').length,8);for(const s of SOURCES)assert.equal(new URL(s.url).protocol,'https:');});
+test('Malay and Chinese labels, text and explicit timezone survive parsing',async()=>{for(const name of ['Sinar Harian','China News Service']){const s=SOURCES.find(s=>s.source_name===name);const [i]=await parseFeed(feed(item('https://example.test/story')),s);assert.equal(i.language,s.language);assert.equal(i.title,'标题 & berita');assert.equal(i.excerpt,'Short excerpt');assert.equal(i.published_at,'2026-11-06T02:00:00.000Z');}});
+test('unknown timezone retained without an invented UTC date',async()=>{const [i]=await parseFeed(feed(item('https://example.test/story','Title','2026-11-06 10:00')),SOURCES[0]);assert.equal(i.published_at,null);assert.equal(i.published_at_text,'2026-11-06 10:00');});
+test('duplicates and unsafe URLs excluded, collection capped per source',async()=>{const items=await parseFeed(feed(item('javascript:alert(1)')+item('https://example.test/1')+item('https://example.test/1')+Array.from({length:20},(_,i)=>item('https://example.test/'+(i+2))).join('')),SOURCES[0]);assert.ok(items.length<=8);assert.equal(new Set(items.map(i=>i.url)).size,items.length);assert.ok(items.every(i=>i.url.startsWith('https://')));});
+test('HTML discovery pages and XML entity declarations rejected',async()=>{for(const raw of ['<html>Feeder discovery</html>','<!DOCTYPE rss [<!ENTITY x "bad">]>'+feed(item('https://example.test/a'))])await assert.rejects(parseFeed(raw,SOURCES[0]),/Unsupported feed/);});
+const comparison=(await readFile(new URL('../lib/st-coverage.ts',import.meta.url),'utf8')).replace("'./contracts'",JSON.stringify(new URL('../lib/contracts.ts',import.meta.url).href));
+const {validateCoverage}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(comparison,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
+test('ST comparison validates real IDs and permits no matches',()=>{assert.deepEqual(validateCoverage({matches:[]},[{item_id:'a'}],[{item_id:'st'}]),[]);assert.deepEqual(validateCoverage({matches:[{item_id:'a',st_id:'st'}]},[{item_id:'a'}],[{item_id:'st'}]),[{item_id:'a',st_id:'st'}]);});
+test('ST comparison rejects invented IDs, unexpected fields',()=>{for(const value of [{matches:[{item_id:'fake',st_id:'st'}]},{matches:[{item_id:'a',st_id:'fake'}]},{matches:[],extra:true},{matches:[{item_id:'a',st_id:'st',reason:'extra'}]}])assert.throws(()=>validateCoverage(value,[{item_id:'a'}],[{item_id:'st'}]));});
+
+const {robotsAllows}=await import('../lib/robots.ts');
+test('crawler rules respect relevant agent, wildcards and longest Allow',()=>{assert.equal(robotsAllows('User-agent: OtherBot\nDisallow: /\nUser-agent: *\nDisallow: /private\nAllow: /private/news','https://example.test/news'),true);assert.equal(robotsAllows('User-agent: *\nDisallow: /private\nAllow: /private/news','https://example.test/private/news'),true);assert.equal(robotsAllows('User-agent: *\nDisallow: /*?secret=','https://example.test/news?secret=1'),false);assert.equal(robotsAllows('User-agent: *\nDisallow: /','https://example.test/news'),false);});

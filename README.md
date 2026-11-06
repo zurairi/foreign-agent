@@ -49,3 +49,15 @@ npm run dev
 See `LOCAL-DEVELOPMENT.md` for local database setup. Apply only pending local migrations; publishing applies hosted migrations. Keep applied SQL and migration metadata immutable.
 
 The ten hosted contract tests cover source IDs, stale runs/fingerprints, priority validation, prohibited model URLs, repeated references, cross-country grouping, malformed output and Chinese characters. The prior local backend has a separate 15-test suite. Passing contract tests does not establish that a model can resist every prompt injection; editorial review remains essential.
+
+## Expanded source coverage
+
+Malaysia: Malay Mail, Sinar Harian, Utusan, Free Malaysia Today, Malaysiakini, Astro Awani, Bernama and Google News. China: China News Service, Global Times, Baidu News (RSSHub), Phoenix, China Digital Times and NPC Observer. Global Times uses its publisher RSS endpoint because the supplied Feeder URL is an HTML discovery page.
+
+Each feed contributes at most eight items; website-only fallback contributes up to four headlines (Global Times and Malay Mail retain their existing eight-item article metadata fallback). Sources collect concurrently and fail independently. Unknown publication dates stay unknown. Stale RSS triggers a conservative public website fallback; failures preserve dated RSS with a warning. No access controls or TLS checks are bypassed. Google News links and syndicated reports retain their attribution and do not count as independent corroboration.
+
+## ST coverage exclusion
+
+Each Run check fetches up to 100 current ST Asia RSS entries and compares all collected candidates using a separate runtime AI request, including translated headlines. Strict ID validation rejects invented matches; matched candidate IDs cannot enter the shortlist, including via manual import. Raw source items remain available for evidence and excluded pairs can be inspected. If ST retrieval or comparison fails, the shortlist is withheld. This is a semantic screening aid limited to the current feed, not an exhaustive ST archive search; model matches can be imperfect. Run check now makes two bounded AI calls.
+
+Priority is a qualitative AI editorial assessment: impact, Singapore/regional relevance, freshness and novelty. Cards sort by Review now, Watch, Lower priority, preserving model order inside a band. No numeric score or popularity metric is used.
