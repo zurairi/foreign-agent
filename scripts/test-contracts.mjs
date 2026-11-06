@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {validateAnalysis} from '../lib/contracts.ts';
 const run={run_id:'current',input_hash:'hash',items:[{item_id:'my',country:'Malaysia'},{item_id:'cn',country:'China'}]};
-const card={source_item_ids:['my'],headline:'中国发展 – original title',summary:['A source says something.'],why_it_matters:'Relevance not established.',priority_band:'Monitor',priority_reason:'Impact; relevance; freshness; novelty.',verification_flags:['Check primary source.']};
+const card={source_item_ids:['my'],headline:'中国发展 – original title',summary:['A source says something.'],why_it_matters:{relevance:'No direct Singapore connection is established in the source.',significance:'A new development needs editorial review.'},priority_band:'Monitor',priority_reason:'Impact; relevance; freshness; novelty.',verification_flags:['Check primary source.']};
 const output=()=>({run_id:run.run_id,input_hash:run.input_hash,cards:[structuredClone(card)]});
 test('valid analysis preserves Chinese and source IDs',()=>assert.equal(validateAnalysis(output(),run)[0].headline,card.headline));
 test('missing source ID rejected',()=>{const v=output();v.cards[0].source_item_ids=['invented'];assert.throws(()=>validateAnalysis(v,run),/known source/);});
